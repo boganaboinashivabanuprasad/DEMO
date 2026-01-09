@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Legal / Policy Simplifier — Prototype</title>
+
+<style>
+  :root{
+    --bg1:#070A12;
+    --bg2:#0B1020;
+    --glass: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.12);
+    --muted:#A7B0C0;
+    --text:#F4F7FF;
+    --accent:#00D4FF;
+    --accent2:#007CF0;
+    --good:#4ADE80;
+    --warn:#FBBF24;
+    --bad:#FB7185;
+    --shadow: 0 18px 60px rgba(0,0,0,0.45);
+    --radius: 18px;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 700px at 20% 10%, rgba(0,212,255,0.20), transparent 55%),
+      radial-gradient(1100px 650px at 85% 0%, rgba(0,124,240,0.18), transparent 60%),
+      radial-gradient(900px 700px at 60% 100%, rgba(124,58,237,0.16), transparent 55%),
+      linear-gradient(180deg, var(--bg1), var(--bg2));
+    min-height:100vh;
+  }
+
+  /* Top bar */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter: blur(18px);
+    background: rgba(10,14,26,0.55);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{
+    max-width:1280px;
+    margin:0 auto;
+    padding:14px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:12px;
+  }
+
+  /* Logo area (InvigilateX logo) */
+  .brandLogo{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+  }
+  .brandLogo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .brand h1{
+    margin:0;
+    font-size:16px;
+    letter-spacing:0.3px;
+  }
+  .brand span{
+    display:block;
+    color:var(--muted);
+    font-size:12px;
+    margin-top:2px;
+  }
+
+  .top-actions{
+    display:flex; gap:10px; flex-wrap:wrap;
+    align-items:center;
+  }
+  .pill{
+    border:1px solid var(--border);
+    background: rgba(255,255,255,0.06);
+    color:var(--text);
+    padding:8px 12px;
+    border-radius:999px;
+    font-size:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .dot{
+    width:8px; height:8px; border-radius:99px;
+    background:var(--good);
+    box-shadow: 0 0 0 4px rgba(74,222,128,0.12);
+  }
+
+  /* Layout */
+  .wrap{
+    max-width:1280px;
+    margin:18px auto 40px;
+    padding:0 18px;
+    display:grid;
+    grid-template-columns: 320px 1fr;
+    gap:18px;
+  }
+
+  .panel{
+    background: var(--glass);
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  /* Sidebar */
+  .side{ padding:18px; }
+  .side h2{
+    margin:0 0 6px;
+    font-size:14px;
+    color:var(--accent);
+    letter-spacing:0.2px;
+  }
+  .side p{
+    margin:0 0 14px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.35;
+  }
+  .steps{ display:flex; flex-direction:column; gap:10px; }
+  .step{
+    padding:12px 12px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.04);
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .step:hover{
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.06);
+  }
+  .badge{
+    width:26px; height:26px;
+    border-radius:10px;
+    display:grid; place-items:center;
+    font-weight:800;
+    color:#00121f;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .step .meta{ flex:1; }
+  .step .title{
+    font-weight:700;
+    font-size:13px;
+    margin:0;
+  }
+  .step .desc{
+    margin:4px 0 0;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.35;
+  }
+  .step .state{
+    font-size:12px;
+    font-weight:800;
+    margin-left:8px;
+    color: rgba(255,255,255,0.65);
+  }
+  .state.ok{ color: var(--good); }
+  .state.todo{ color: var(--warn); }
+
+  .mini{
+    margin-top:14px;
+    padding:12px;
+    border-radius:14px;
+    border:1px dashed rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.03);
+  }
+  .mini b{ color:#E6F7FF; }
+  .mini div{ margin-top:6px; color:var(--muted); font-size:12px; line-height:1.35; }
+
+  /* Main */
+  .main{ padding:18px; }
+  .hero{
+    padding:18px;
+    border-radius: 18px;
+    background:
+      radial-gradient(900px 260px at 0% 0%, rgba(0,212,255,0.22), transparent 60%),
+      radial-gradient(900px 260px at 100% 0%, rgba(0,124,240,0.18), transparent 55%),
+      rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 16px 55px rgba(0,0,0,0.35);
+    margin-bottom:14px;
+  }
+  .hero h2{ margin:0; font-size:20px; letter-spacing:0.2px; }
+  .hero p{
+    margin:8px 0 0;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.45;
+    max-width:900px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width: 980px){
+    .wrap{ grid-template-columns:1fr; }
+    .grid{ grid-template-columns:1fr; }
+  }
+
+  .card{
+    background: rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    padding:16px;
+    box-shadow: 0 12px 45px rgba(0,0,0,0.30);
+  }
+  .card h3{
+    margin:0 0 10px;
+    font-size:14px;
+    color: #BFEFFF;
+    letter-spacing:0.2px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .icon{
+    width:28px; height:28px;
+    border-radius: 12px;
+    display:grid; place-items:center;
+    background: rgba(0,212,255,0.14);
+    border:1px solid rgba(0,212,255,0.22);
+    color: var(--accent);
+    font-weight:900;
+    font-size:12px;
+  }
+  .hint{
+    font-size:12px;
+    color:var(--muted);
+    margin:0 0 10px;
+    line-height:1.35;
+  }
+
+  .drop{
+    border: 1px dashed rgba(255,255,255,0.18);
+    background: rgba(255,255,255,0.03);
+    border-radius: 16px;
+    padding:14px;
+  }
+  .drop-top{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  }
+  .fileName{
+    color: rgba(255,255,255,0.85);
+    font-size:12px;
+    margin-top:6px;
+  }
+
+  textarea{
+    width:100%;
+    min-height:150px;
+    background:#0E1526;
+    border:1px solid rgba(255,255,255,0.12);
+    color:#fff;
+    border-radius: 14px;
+    padding:12px;
+    font-size:13px;
+    line-height:1.45;
+    resize:vertical;
+    outline:none;
+  }
+  textarea:focus{
+    border-color: rgba(0,212,255,0.35);
+    box-shadow: 0 0 0 4px rgba(0,212,255,0.10);
+  }
+
+  select, input[type="file"]{
+    background: rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.12);
+    color:#fff;
+    padding:10px 12px;
+    border-radius: 14px;
+    outline:none;
+  }
+
+  .btn{
+    border:none;
+    border-radius: 14px;
+    padding:10px 14px;
+    font-weight:800;
+    cursor:pointer;
+    transition: all .15s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+  }
+  .btnPrimary{
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color:#00121f;
+    box-shadow: 0 12px 30px rgba(0,212,255,0.20);
+  }
+  .btnPrimary:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(0,212,255,0.32);
+  }
+  .btnGhost{
+    background: rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.12);
+    color:#fff;
+  }
+  .btnGhost:hover{
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.08);
+  }
+
+  .status{
+    margin-top:10px;
+    font-size:12px;
+    color:#7fffd4;
+    white-space:pre-wrap;
+  }
+  .status.warn{ color: var(--warn); }
+  .status.bad{ color: var(--bad); }
+
+  .chips{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-top:8px;
+  }
+  .chip{
+    font-size:11px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.82);
+  }
+  .chip strong{ color:#E6F7FF; }
+
+  .toast{
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    min-width: 260px;
+    max-width: 360px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border:1px solid rgba(255,255,255,0.14);
+    background: rgba(10,14,26,0.75);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow);
+    color:#fff;
+    display:none;
+    z-index: 99;
+  }
+  .toast b{ color: var(--accent); }
+  .toast .small{ color: var(--muted); font-size:12px; margin-top:3px; }
+
+  .overlay{
+    position: fixed;
+    inset:0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+    display:none;
+    z-index: 100;
+    align-items:center;
+    justify-content:center;
+  }
+  .loader{
+    background: rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.16);
+    padding: 16px 18px;
+    border-radius: 16px;
+    text-align:center;
+    box-shadow: var(--shadow);
+    min-width: 280px;
+  }
+  .spinner{
+    width:34px;height:34px;border-radius:999px;
+    border: 3px solid rgba(255,255,255,0.18);
+    border-top-color: var(--accent);
+    margin: 0 auto 10px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  footer{
+    max-width:1280px;
+    margin:0 auto 30px;
+    padding: 0 18px;
+    color: var(--muted);
+    font-size:12px;
+    text-align:center;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brandLogo" title="InvigilateX">
+        <!-- Put invigilatex.png inside public/ folder -->
+        <img src="/invigilatex.jpg" alt="InvigilateX Logo">
+
+      </div>
+      <div>
+        <h1>Legal / Policy Simplifier</h1>
+        <span>Hackathon Prototype · Explain notices · IPC guidance · Multi-language</span>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div class="pill"><span class="dot"></span> System: Localhost</div>
+      <div class="pill">Not Legal Advice</div>
+      <button class="btn btnGhost" id="btnCopyDemo">Paste Demo Case</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Sidebar -->
+  <div class="panel side">
+    <h2>Workflow</h2>
+    <p>Designed for non-technical citizens: upload → understand → translate.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="badge">1</div>
+        <div class="meta">
+          <div class="title">Upload / OCR</div>
+          <div class="desc">PDF or image → extract readable text.</div>
+        </div>
+        <div class="state todo" id="st1">TODO</div>
+      </div>
+
+      <div class="step">
+        <div class="badge">2</div>
+        <div class="meta">
+          <div class="title">Simplify + IPC</div>
+          <div class="desc">Plain language + sections + next steps.</div>
+        </div>
+        <div class="state todo" id="st2">TODO</div>
+      </div>
+
+      <div class="step">
+        <div class="badge">3</div>
+        <div class="meta">
+          <div class="title">Translate</div>
+          <div class="desc">Explain in local language for users.</div>
+        </div>
+        <div class="state todo" id="st3">TODO</div>
+      </div>
+    </div>
+
+    <div class="mini">
+      <b>Tip for Judges</b>
+      <div>
+        Show the flow in 30 seconds:
+        <br/>1) Upload → Extract
+        <br/>2) Simplify + IPC
+        <br/>3) Translate
+      </div>
+    </div>
+
+    <div class="mini" style="margin-top:12px;">
+      <b>Supported Scenarios (Prototype)</b>
+      <div>Accident · Fraud · Harassment · Theft · General</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="panel main">
+    <div class="hero">
+      <h2>Make Legal Notices Understandable — Instantly</h2>
+      <p>
+        Upload any notice (court/legal/FIR/policy). The system extracts text, explains it in simple language,
+        highlights important dates, explains IPC sections, and suggests next actions for common people.
+      </p>
+      <div class="chips">
+        <div class="chip"><strong>OCR:</strong> Azure Document Intelligence</div>
+        <div class="chip"><strong>Language:</strong> Azure Translator</div>
+        <div class="chip"><strong>Logic:</strong> Scenario + IPC knowledge</div>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- Upload card -->
+      <div class="card">
+        <h3><span class="icon">U</span> Upload & Extract</h3>
+        <p class="hint">Drag & drop a PDF/image or choose a file, then click Extract.</p>
+
+        <div class="drop" id="dropZone">
+          <div class="drop-top">
+            <div>
+              <input id="file" type="file" accept=".pdf,.png,.jpg,.jpeg"/>
+              <div class="fileName" id="fileName">No file selected</div>
+            </div>
+            <button class="btn btnPrimary" id="btnExtract">Extract Text</button>
+          </div>
+          <div class="status" id="stExtract"></div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label style="color:var(--muted);font-size:12px;">Extracted / Pasted Text</label>
+          <textarea id="extracted" placeholder="OCR text will appear here… (or paste text for quick demo)"></textarea>
+          <div class="drop-top" style="margin-top:10px;">
+            <button class="btn btnGhost" id="btnClearText">Clear Text</button>
+            <button class="btn btnGhost" id="btnCopyText">Copy Text</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analyze card -->
+      <div class="card">
+        <h3><span class="icon">S</span> Simplify & Explain</h3>
+        <p class="hint">Click Simplify to generate a plain-English explanation + scenario guidance + IPC meaning.</p>
+
+        <div class="drop-top">
+          <button class="btn btnPrimary" id="btnAnalyze">Simplify + IPC Explain</button>
+          <button class="btn btnGhost" id="btnCopyExplain">Copy Result</button>
+        </div>
+
+        <div class="status" id="stAnalyze"></div>
+
+        <div style="margin-top:12px;">
+          <label style="color:var(--muted);font-size:12px;">Explanation (English)</label>
+          <textarea id="explainEn" placeholder="AI explanation appears here…"></textarea>
+        </div>
+      </div>
+
+      <!-- Translate card -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <h3><span class="icon">T</span> Translate</h3>
+        <p class="hint">Select a local language and translate the explanation for easy understanding.</p>
+
+        <div class="drop-top">
+          <select id="lang">
+            <option value="en">English</option>
+            <option value="te">Telugu</option>
+            <option value="hi">Hindi</option>
+            <option value="ta">Tamil</option>
+          </select>
+
+          <button class="btn btnPrimary" id="btnTranslate">Translate</button>
+          <button class="btn btnGhost" id="btnCopyTranslated">Copy Translation</button>
+        </div>
+
+        <div class="status" id="stTranslate"></div>
+
+        <div style="margin-top:12px;">
+          <label style="color:var(--muted);font-size:12px;">Explanation (Selected Language)</label>
+          <textarea id="explainLocal" placeholder="Translated output appears here…"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Prototype Disclaimer: General information only (not legal advice).
+  <br/>Demo: Paste Demo Case → Simplify → Translate.
+</footer>
+
+<!-- Loading overlay -->
+<div class="overlay" id="overlay">
+  <div class="loader">
+    <div class="spinner"></div>
+    <div id="overlayText">Working…</div>
+    <div style="margin-top:6px;color:var(--muted);font-size:12px;">Please don’t close this tab.</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <b id="toastTitle">Done</b>
+  <div class="small" id="toastMsg"></div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const overlay = $("overlay");
+  const overlayText = $("overlayText");
+
+  function showOverlay(msg){
+    overlayText.textContent = msg || "Working…";
+    overlay.style.display = "flex";
+  }
+  function hideOverlay(){ overlay.style.display = "none"; }
+
+  function toast(title, msg){
+    $("toastTitle").textContent = title || "Info";
+    $("toastMsg").textContent = msg || "";
+    const t = $("toast");
+    t.style.display = "block";
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(()=>{ t.style.display="none"; }, 2600);
+  }
+
+  function markStep(n, ok){
+    const el = $("st"+n);
+    el.textContent = ok ? "DONE" : "TODO";
+    el.className = "state " + (ok ? "ok" : "todo");
+  }
+
+  const demoText =
+`On 12/11/2025 at around 8:30 PM, the complainant was travelling on a two-wheeler.
+A car came at high speed and hit the complainant causing injuries.
+This is filed under Section 279 and 337 IPC.`;
+
+  $("btnCopyDemo").onclick = () => {
+    $("extracted").value = demoText;
+    toast("Demo Loaded", "Sample case text pasted.");
+    markStep(1, true);
+  };
+
+  async function copyToClipboard(text){
+    // First try modern clipboard
+    try{
+      await navigator.clipboard.writeText(text || "");
+      return true;
+    }catch(e){
+      // Fallback for browsers blocking clipboard
+      try{
+        const temp = document.createElement("textarea");
+        temp.value = text || "";
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+        return true;
+      }catch(err){
+        return false;
+      }
+    }
+  }
+
+  $("btnCopyText").onclick = async () => {
+    const ok = await copyToClipboard($("extracted").value);
+    toast(ok ? "Copied" : "Copy Failed", ok ? "Extracted text copied." : "Clipboard blocked by browser.");
+  };
+
+  $("btnCopyExplain").onclick = async () => {
+    const ok = await copyToClipboard($("explainEn").value);
+    toast(ok ? "Copied" : "Copy Failed", ok ? "Explanation copied." : "Clipboard blocked by browser.");
+  };
+
+  $("btnCopyTranslated").onclick = async () => {
+    const ok = await copyToClipboard($("explainLocal").value);
+    toast(ok ? "Copied" : "Copy Failed", ok ? "Translation copied." : "Clipboard blocked by browser.");
+  };
+
+  $("btnClearText").onclick = () => {
+    $("extracted").value = "";
+    $("stExtract").textContent = "";
+    markStep(1, false);
+    toast("Cleared", "Text cleared.");
+  };
+
+  // Drag & drop
+  const dropZone = $("dropZone");
+  dropZone.addEventListener("dragover", (e)=>{
+    e.preventDefault();
+    dropZone.style.background="rgba(255,255,255,0.05)";
+  });
+  dropZone.addEventListener("dragleave", ()=>{
+    dropZone.style.background="rgba(255,255,255,0.03)";
+  });
+  dropZone.addEventListener("drop", (e)=>{
+    e.preventDefault();
+    dropZone.style.background="rgba(255,255,255,0.03)";
+    if (e.dataTransfer.files && e.dataTransfer.files[0]){
+      try{
+        $("file").files = e.dataTransfer.files;
+      }catch(err){
+        // ignore if browser blocks assignment
+      }
+      $("fileName").textContent = e.dataTransfer.files[0].name;
+      toast("File Selected", e.dataTransfer.files[0].name);
+    }
+  });
+
+  $("file").addEventListener("change", ()=>{
+    $("fileName").textContent = $("file").files[0] ? $("file").files[0].name : "No file selected";
+  });
+
+  // Extract
+  $("btnExtract").onclick = async () => {
+    const st = $("stExtract");
+    st.className = "status";
+    st.textContent = "Extracting...";
+    const f = $("file").files[0];
+
+    if (!f){
+      st.className = "status warn";
+      st.textContent = "Please choose a PDF/image first.";
+      toast("Missing File", "Select a file to extract.");
+      return;
+    }
+
+    showOverlay("Extracting text from document (OCR)...");
+
+    const fd = new FormData();
+    fd.append("file", f);
+
+    const res = await fetch("/extract", { method:"POST", body: fd });
+    const data = await res.json().catch(()=> ({}));
+
+    hideOverlay();
+
+    if (!res.ok){
+      st.className = "status bad";
+      st.textContent = "Extract failed:\n" + JSON.stringify(data, null, 2);
+      toast("Extract Failed", "Check DOCINTEL_KEY and DOCINTEL_ENDPOINT in .env");
+      return;
+    }
+
+    st.className = "status";
+    st.textContent = "Extract success";
+    $("extracted").value = data.text || "";
+    markStep(1, true);
+    toast("Extracted", "OCR text inserted.");
+  };
+
+  // Analyze
+  $("btnAnalyze").onclick = async () => {
+    const st = $("stAnalyze");
+    st.className = "status";
+    st.textContent = "Analyzing...";
+    const text = $("extracted").value.trim();
+
+    if (!text){
+      st.className = "status warn";
+      st.textContent = "No text to analyze. Extract or paste first.";
+      toast("No Text", "Paste or extract content first.");
+      return;
+    }
+
+    showOverlay("Simplifying content + IPC explanation...");
+
+    const res = await fetch("/analyze", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    const data = await res.json().catch(()=> ({}));
+
+    hideOverlay();
+
+    if (!res.ok){
+      st.className = "status bad";
+      st.textContent = "Analyze failed:\n" + JSON.stringify(data, null, 2);
+      toast("Analyze Failed", "Please try again.");
+      return;
+    }
+
+    st.className = "status";
+    st.textContent = "Analyze success";
+    $("explainEn").value = data.plainText || "";
+    markStep(2, true);
+    toast("Simplified", "Explanation generated.");
+  };
+
+  // Translate
+  $("btnTranslate").onclick = async () => {
+    const st = $("stTranslate");
+    st.className = "status";
+    st.textContent = "Translating...";
+    const text = $("explainEn").value.trim();
+    const to = $("lang").value;
+
+    if (!text){
+      st.className = "status warn";
+      st.textContent = "Nothing to translate. Run simplify first.";
+      toast("No Output", "Generate explanation first.");
+      return;
+    }
+
+    if (to === "en"){
+      $("explainLocal").value = text;
+      st.className = "status";
+      st.textContent = "English selected (no translation).";
+      markStep(3, true);
+      toast("Ready", "English copied to translated box.");
+      return;
+    }
+
+    showOverlay("Translating to selected language...");
+
+    const res = await fetch("/translate", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ text, to })
+    });
+
+    const data = await res.json().catch(()=> ({}));
+
+    hideOverlay();
+
+    if (!res.ok){
+      st.className = "status bad";
+      st.textContent = "Translate failed:\n" + JSON.stringify(data, null, 2);
+      toast("Translate Failed", "Check TRANSLATOR_KEY / ENDPOINT / REGION in .env");
+      return;
+    }
+
+    st.className = "status";
+    st.textContent = "Translate success";
+    $("explainLocal").value = data.translatedText || "";
+    markStep(3, true);
+    toast("Translated", "Output translated successfully.");
+  };
+
+  // Init
+  markStep(1,false); markStep(2,false); markStep(3,false);
+</script>
+</body>
+</html>
